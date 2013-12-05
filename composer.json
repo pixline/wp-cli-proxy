@@ -1,0 +1,29 @@
+{
+    "name": "pixline/wp-cli-proxy",
+    "type": "command",
+    "description": "Wrapper around https://mitmproxy.org",
+    "keywords": ["wp-cli","mitmproxy","proxy","development"],
+    "homepage": "https://github.com/pixline/wp-cli-proxy",
+    "license": "MIT",
+    "require": {
+        "wp-cli/wp-cli": "dev-master"
+    },
+    "require-dev": {
+        "pixline/wp-cli-php-devtools": "dev-master"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Paolo Tresso",
+            "email": "plugins@swergroup.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "support": {
+      "issues": "https://github.com/pixline/wp-cli-devtools/issues",
+      "source": "https://github.com/pixline/wp-cli-devtools"
+    },
+    "autoload": {
+      "files": [ "proxy-command.php" ]
+    }
+}
