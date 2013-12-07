@@ -1,6 +1,6 @@
 # wp-cli proxy
 
-[![Support](https://www.paypalobjects.com/it_IT/IT/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CX6VQ6FVJFN4L)
+[![Build Status](https://travis-ci.org/pixline/wp-cli-proxy.png)](https://travis-ci.org/pixline/wp-cli-proxy) [![Support](https://www.paypalobjects.com/it_IT/IT/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CX6VQ6FVJFN4L)
 
 Wrapper around [mitmproxy](http://mitmproxy.org). Install, configure and run a local debug proxy alongside WordPress, allowing interception, analysis and replay of every HTTP(S) request and response. 
 
