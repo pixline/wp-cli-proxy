@@ -1,49 +1,64 @@
 <?php
 /**
- * wp-cli minify command
+ * wp-cli proxy: wrapper around mitmproxy
  *
+ * @version 0.1.2
  * @author Paolo Tresso <plugins@swergroup.com>
  */
 
 if ( true === class_exists( 'WP_CLI_Command' ) ){
 	/**
-	 * Install and run mitmproxy (https://mitmproxy.org)
+	 * Install, configure and run local debug proxy
 	 *
-	 *  -b ADDR               Address to bind proxy to (defaults to all interfaces)
-	 *  --anticache           Strip out request headers that might cause the server
-	 *                        to return 304-not-modified.
-	 *  --confdir CONFDIR     Configuration directory. (~/.mitmproxy)
-	 *  -e                    Show event log.
-	 *  -n                    Don't start a proxy server.
-	 *  -p PORT               Proxy service port.
-	 *  -P REVERSE_PROXY      Reverse proxy to upstream server:
-	 *                        http[s]://host[:port]
-	 *  -q                    Quiet.
-	 *  -r RFILE              Read flows from file.
-	 *  -s SCRIPT             Run a script.
-	 *  -t FILTER             Set sticky cookie filter. Matched against requests.
-	 *  -T                    Set transparent proxy mode.
-	 *  -u FILTER             Set sticky auth filter. Matched against requests.
-	 *  -v                    Increase verbosity. Can be passed multiple times.
-	 *  -w WFILE              Write flows to file.
-	 *  -z                    Try to convince servers to send us un-compressed data.
-	 *  -Z SIZE               Byte size limit of HTTP request and response bodies.
-	 *                        Understands k/m/g suffixes, i.e. 3m for 3 megabytes.
-	 *  --host                Use the Host header to construct URLs for display.
-	 *  --no-upstream-cert    Don't connect to upstream server to look up
-	 *                        certificate details.
-	 *  --debug
-	 *  --palette PALETTE     Select color palette: dark, light, solarized_dark,
-	 *                        solarized_light
+	 * This command install, configure and run a local debug proxy ( http://mitmproxy.org ).
+	 * Setup requires Python >= 2.7 and the pip installer.
 	 *
-	 * Web App:
-	 *  -a                    Enable the mitmproxy web app.
-	 *  --appdomain domain    Domain to serve the app from.
-	 *  --appip ip            IP to serve the app from. Useful for transparent mode,
-	 *                        when a DNS entry for the app domain is not present.
 	 */
 	class WP_CLI_Proxy_Command extends WP_CLI_Command{
 		
+		private $version = '0.1.2';
+		
+		/**
+		 * Start mitmproxy
+		 * 
+		 * ## OPTIONS
+		 *
+		 * [port]
+		 * : Proxy service port. (Default: 9090)
+		 *
+		 * [--flags=<flags>]
+		 * : mitmproxy command flags, i.e.: "-b 127.0.1.1"
+		 *
+		 * ## EXAMPLES
+		 *
+		 * wp proxy start
+		 * wp proxy start 12345
+		 * wp proxy start "-b 127.0.1.1 --palette=solarized_dark"
+		 * wp proxy start 8080 "-b 127.0.1.1"
+		 *
+		 * @since 0.1.2
+		 * @when before_wp_load
+		 * @synopsis [<port>] [--flags=<flags>]
+		 */
+		public function start( $args = null, $assoc_args = null ){
+			$flags = ( isset( $assoc_args['flags'] ) ) ? $assoc_args['flags'] : '';
+			if ( isset( $args[0] ) ):
+				list( $port ) = $args;
+			else :
+				$port = '9090';
+			endif;
+			
+			WP_CLI::launch( 'mitmproxy -p ' . $port . ' ' . $flags );
+		}
+		
+		/** 
+		 * Patch wp-config.php with our proxy configuration
+		 *
+		 * Function borrowed from wp-cli itself.
+		 * Couldn't find a way to use the original one :|
+		 *
+		 * @since 0.1.1
+		 */
 		private function _patch_wp_config( $content ){
 			$wp_config_path = WP_CLI\Utils\locate_wp_config();
 			$token = "/* That's all, stop editing!";
@@ -52,48 +67,119 @@ if ( true === class_exists( 'WP_CLI_Command' ) ){
 			WP_CLI::success( 'Added proxy constants to wp-config.php.' );
 		}
 		
+		/**
+		 * Add proxy configuration constants to wp-config.php (or dump them to console).
+		 *
+		 * ## OPTIONS
+		 *
+		 * [--dump]
+		 * : Return values to console insted of patching wp-config.php
+		 *
+		 * ## EXAMPLES
+		 *
+		 * wp proxy config
+		 * wp proxy config --dump
+		 *
+		 * ## AVAILABLE CONSTANTS 
+		 *
+		 *   WP_PROXY
+		 *      Run WordPress requests through the proxy. (bool) 
+		 *
+		 *   WP_PROXY_HOST
+		 *      Proxy IP/hostname, default: 127.0.0.1 (string)
+		 *
+		 *   WP_PROXY_PORT
+		 *      Proxy port, default: 9090 (string)
+		 *
+		 *   WP_PROXY_BYPASS_HOSTS	(string)
+		 *      Comma-separated list of ip/hostnames to bypass (string)
+		 *
+		 *   WP_PROXY_USERNAME
+		 *      Optional proxy username (string)
+		 *
+		 *   WP_PROXY_PASSWORD
+		 *      Optional proxy password (string)
+		 *
+		 * @since 0.1.1
+		 * @when before_wp_load
+		 * @synopsis [--dump]
+		 */
 		public function config( $args = null, $assoc_args = null ){
+			
 			$proxy_config = <<<WPCONFIG
+
 define( 'WP_PROXY', true );
 if ( WP_PROXY ){
-	define( 'WP_PROXY_HOST', 'localhost' );
-	define( 'WP_PROXY_PORT', '8080' );
+	define( 'WP_PROXY_HOST', '127.0.0.1' );
+	define( 'WP_PROXY_PORT', '9090' );
+	define( 'WP_PROXY_BYPASS_HOSTS', '127.0.0.1' );
 	define( 'WP_PROXY_USERNAME', '' );
 	define( 'WP_PROXY_PASSWORD', '' );
-	define( 'WP_PROXY_BYPASS_HOSTS', 'localhost' );
 }
+
 WPCONFIG;
+
+		if ( isset( $assoc_args['dump'] ) ):
+			WP_CLI::line( $proxy_config );
+		else :
 			self::_patch_wp_config( $proxy_config );
+		endif;
 		}
 
 		/**
-		 * @alias upgrade
+		 * Install mitmproxy - http://mitmproxy.org
+		 *
+		 * Check if mitmproxy is already installed, otherwise installs it. 
+		 * Requires Python >= 2.7 and the pip installer.
+		 * See http://www.pip-installer.org for details.
+		 *
+		 * ## EXAMPLES
+		 *
+		 * wp proxy install
+		 *
+		 * @since 0.1.1
+		 * @when before_wp_load
 		 */
-		public function install( $args = null, $assoc_args = null ){
-			WP_CLI::log( 'Installing mitmproxy..' );
-			passthru( 'pip install mitmproxy --upgrade', $res );
-			if ( 0 === $res ){
-				WP_CLI::success( 'mitmproxy successfully installed.' );
+		public function install(){
+			passthru( 'mitmproxy --version', $mitmcheck );
+			if ( 0 === $mitmcheck ){
+				// already installed 
+				WP_CLI::success( 'mitmproxy already installed.' );
 			} else {
-				WP_CLI::error( 'Sorry, I could not install mitmproxy.' );
+				// check pip installer
+				passthru( 'pip -V', $check );
+				if ( 0 === $check ){
+					// install
+					WP_CLI::log( 'Installing mitmproxy..' );
+					passthru( 'pip install mitmproxy --upgrade', $res );
+					if ( 0 === $res ){
+						WP_CLI::success( 'mitmproxy successfully installed.' );
+					} else {
+						WP_CLI::error( 'Sorry, something went wrong.' );
+					}
+
+				} else {
+					WP_CLI::error( 'Python >= 2.7 + pip installer required. See http://www.pip-installer.org .' );
+				}
+
 			}
+			
 		}
 		
 		/**
-		 * @subcommand is-installed
+		 * Return wp-cli + mitmproxy versions
+		 *
+		 * ## EXAMPLES
+		 *
+		 * wp proxy version
+		 *
+		 * @since 0.1.1
+		 * @when before_wp_load
 		 */
-		public function is_installed( $args = null, $assoc_args = null ){
-			passthru( 'mitmproxy --version', $res );
-			if ( 0 === $res ){
-				WP_CLI::success( 'mitmproxy is installed.' );
-			} else {
-				WP_CLI::error( 'mitmproxy is NOT installed.' );
-				self::install();
-			}
-		}
-
 		public function version( $args = null, $assoc_args = null ){
+			WP_CLI::line( 'wp-cli proxy command ' . $this->version );
 			WP_CLI::launch( 'mitmproxy --version' );
+			WP_CLI::launch( 'wp --info' );
 		}
 
 	}
