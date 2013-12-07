@@ -215,11 +215,14 @@ WPCONFIG;
 		 *
 		 * @since 0.1.1
 		 * @when before_wp_load
+		 * @synopsis [--extra]
 		 */
 		public function version(){
 			WP_CLI::line( 'wp-cli proxy command ' . $this->version );
-			WP_CLI::launch( 'mitmproxy --version' );
-			WP_CLI::launch( 'wp --info' );
+			if ( isset( $assoc_args['extra'] ) && 1 === $assoc_args['extra'] ):
+				WP_CLI::launch( 'mitmproxy --version' );
+				WP_CLI::launch( 'wp --info' );
+			endif;
 		}
 
 	}
