@@ -2,7 +2,7 @@
 /**
  * wp-cli proxy: wrapper around mitmproxy
  *
- * @version 0.1.2
+ * @version 0.1.3
  * @author Paolo Tresso <plugins@swergroup.com>
  */
 

@@ -39,9 +39,15 @@ See `wp proxy <subcommand> --help` (or source code) for details.
 
 ## Changelog
 
+### 0.1.3 (07/12/2013)
+
+* `sudo` install support
+* minor refactoring
+* 
+
 ### 0.1.2
 
-* 07/12/2013 - First public release
+* First public release
 
 ## Credits
 
