@@ -143,7 +143,7 @@ WPCONFIG;
 		 */
 		private function _mitmproxy_install(){
 			WP_CLI::log( 'Installing mitmproxy..' );
-			passthru( 'pip install mitmproxy --upgrade', $res );
+			passthru( $sudo . 'pip install mitmproxy --upgrade', $res );
 			if ( 0 === $res ){
 				WP_CLI::success( 'mitmproxy successfully installed.' );
 			} else {
@@ -158,12 +158,12 @@ WPCONFIG;
 		 * @uses passthru
 		 * @since 0.1.2
 		 */
-		private function _do_install(){
+		private function _do_install( $sudo ){
 			// check pip installer
-			passthru( 'pip -V', $check );
+			passthru( $sudo . 'pip -V', $check );
 			if ( 0 === $check ){
 				// real install
-				self::_mitmproxy_install();
+				self::_mitmproxy_install( $sudo );
 			} else {
 				// python or pip or something else missing
 				WP_CLI::error( 'Python >= 2.7 + pip installer required. See http://www.pip-installer.org .' );
@@ -180,13 +180,20 @@ WPCONFIG;
 		 * ## EXAMPLES
 		 *
 		 * wp proxy install
+		 * wp proxy install --sudo
 		 *
 		 * @uses _do_install
 		 * @uses passthru
 		 * @since 0.1.1
 		 * @when before_wp_load
+		 * @synopsis [--sudo]
 		 */
-		public function install(){
+		public function install( $args = null, $assoc_args = null ){
+			if ( isset( $assoc_args['sudo'] ) && 1 === $assoc_args['sudo'] ):
+				$sudo = 'sudo ';
+			else :
+				$sudo = '';
+			endif;
 
 			passthru( 'mitmproxy --version', $mitmcheck );
 
@@ -194,7 +201,7 @@ WPCONFIG;
 				// already installed 
 				WP_CLI::success( 'mitmproxy already installed.' );
 			} else {
-				self::_do_install();
+				self::_do_install( $sudo );
 			}
 
 		}
