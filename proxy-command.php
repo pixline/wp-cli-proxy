@@ -36,6 +36,8 @@ if ( true === class_exists( 'WP_CLI_Command' ) ){
 		 * wp proxy start "-b 127.0.1.1 --palette=solarized_dark"
 		 * wp proxy start 8080 "-b 127.0.1.1"
 		 *
+		 * @param $args array 				Arguments array
+		 * @param $assoc_args array 	Associative arguments array
 		 * @since 0.1.2
 		 * @when before_wp_load
 		 * @synopsis [<port>] [--flags=<flags>]
@@ -57,6 +59,10 @@ if ( true === class_exists( 'WP_CLI_Command' ) ){
 		 * Function borrowed from wp-cli itself.
 		 * Couldn't find a way to use the original one :|
 		 *
+		 * @param mixed $content 		wp-config configuration snippet
+		 * @uses WP_CLI\Utils\locate_wp_config
+		 * @uses file_get_contents
+		 * @uses file_put_contents
 		 * @since 0.1.1
 		 */
 		private function _patch_wp_config( $content ){
@@ -100,6 +106,9 @@ if ( true === class_exists( 'WP_CLI_Command' ) ){
 		 *   WP_PROXY_PASSWORD
 		 *      Optional proxy password (string)
 		 *
+		 * @param $args array 				Arguments array
+		 * @param $assoc_args array 	Associative arguments array
+		 * @uses _patch_wp_config
 		 * @since 0.1.1
 		 * @when before_wp_load
 		 * @synopsis [--dump]
