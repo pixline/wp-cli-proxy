@@ -141,7 +141,7 @@ WPCONFIG;
 		 * @uses passthru
 		 * @since 0.1.2
 		 */
-		private function _mitmproxy_install(){
+		private function _mitmproxy_install( $sudo ){
 			WP_CLI::log( 'Installing mitmproxy..' );
 			passthru( $sudo . 'pip install mitmproxy --upgrade', $res );
 			if ( 0 === $res ){
