@@ -136,7 +136,42 @@ WPCONFIG;
 		}
 
 		/**
-		 * Install mitmproxy - http://mitmproxy.org
+		 * Install mitmproxy via the pip installer
+		 *
+		 * @uses passthru
+		 * @since 0.1.2
+		 */
+		private function _mitmproxy_install(){
+			WP_CLI::log( 'Installing mitmproxy..' );
+			passthru( 'pip install mitmproxy --upgrade', $res );
+			if ( 0 === $res ){
+				WP_CLI::success( 'mitmproxy successfully installed.' );
+			} else {
+				WP_CLI::error( 'Sorry, something went wrong.' );
+			}
+		}
+
+		/**
+		 * Check pip package and call mitmproxy install procedure
+		 *
+		 * @uses _mitmproxy_install
+		 * @uses passthru
+		 * @since 0.1.2
+		 */
+		private function _do_install(){
+			// check pip installer
+			passthru( 'pip -V', $check );
+			if ( 0 === $check ){
+				// real install
+				self::_mitmproxy_install();
+			} else {
+				// python or pip or something else missing
+				WP_CLI::error( 'Python >= 2.7 + pip installer required. See http://www.pip-installer.org .' );
+			}
+		}
+
+		/**
+		 * Install mitmproxy
 		 *
 		 * Check if mitmproxy is already installed, otherwise installs it. 
 		 * Requires Python >= 2.7 and the pip installer.
@@ -146,33 +181,22 @@ WPCONFIG;
 		 *
 		 * wp proxy install
 		 *
+		 * @uses _do_install
+		 * @uses passthru
 		 * @since 0.1.1
 		 * @when before_wp_load
 		 */
 		public function install(){
+
 			passthru( 'mitmproxy --version', $mitmcheck );
+
 			if ( 0 === $mitmcheck ){
 				// already installed 
 				WP_CLI::success( 'mitmproxy already installed.' );
 			} else {
-				// check pip installer
-				passthru( 'pip -V', $check );
-				if ( 0 === $check ){
-					// install
-					WP_CLI::log( 'Installing mitmproxy..' );
-					passthru( 'pip install mitmproxy --upgrade', $res );
-					if ( 0 === $res ){
-						WP_CLI::success( 'mitmproxy successfully installed.' );
-					} else {
-						WP_CLI::error( 'Sorry, something went wrong.' );
-					}
-
-				} else {
-					WP_CLI::error( 'Python >= 2.7 + pip installer required. See http://www.pip-installer.org .' );
-				}
-
+				self::_do_install();
 			}
-			
+
 		}
 		
 		/**
@@ -185,7 +209,7 @@ WPCONFIG;
 		 * @since 0.1.1
 		 * @when before_wp_load
 		 */
-		public function version( $args = null, $assoc_args = null ){
+		public function version(){
 			WP_CLI::line( 'wp-cli proxy command ' . $this->version );
 			WP_CLI::launch( 'mitmproxy --version' );
 			WP_CLI::launch( 'wp --info' );
