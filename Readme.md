@@ -37,6 +37,14 @@ wp proxy version
 
 See `wp proxy <subcommand> --help` (or source code) for details.
 
+### wp-cli.yml example
+
+```
+proxy start:
+  port: 1234
+  flags: --palette=solarized_dark
+```
+
 ## Changelog
 
 ### 0.1.3 (07/12/2013)

@@ -16,14 +16,14 @@ if ( true === class_exists( 'WP_CLI_Command' ) ){
 	 */
 	class WP_CLI_Proxy_Command extends WP_CLI_Command{
 		
-		private $version = '0.1.2';
+		private $version = '0.1.3';
 		
 		/**
 		 * Start mitmproxy
 		 * 
 		 * ## OPTIONS
 		 *
-		 * [port]
+		 * [--port=<port>]
 		 * : Proxy service port. (Default: 9090)
 		 *
 		 * [--flags=<flags>]
@@ -32,24 +32,19 @@ if ( true === class_exists( 'WP_CLI_Command' ) ){
 		 * ## EXAMPLES
 		 *
 		 * wp proxy start
-		 * wp proxy start 12345
+		 * wp proxy start --port=12345
 		 * wp proxy start "-b 127.0.1.1 --palette=solarized_dark"
-		 * wp proxy start 8080 "-b 127.0.1.1"
+		 * wp proxy start --port=8080 "-b 127.0.1.1"
 		 *
 		 * @param $args array 				Arguments array
 		 * @param $assoc_args array 	Associative arguments array
 		 * @since 0.1.2
 		 * @when before_wp_load
-		 * @synopsis [<port>] [--flags=<flags>]
+		 * @synopsis [--port=<port>] [--flags=<flags>]
 		 */
 		public function start( $args = null, $assoc_args = null ){
 			$flags = ( isset( $assoc_args['flags'] ) ) ? $assoc_args['flags'] : '';
-			if ( isset( $args[0] ) ):
-				list( $port ) = $args;
-			else :
-				$port = '9090';
-			endif;
-			
+			$port = ( isset( $assoc_args['port'] ) ) ? $assoc_args['port'] : '9090';			
 			WP_CLI::launch( 'mitmproxy -p ' . $port . ' ' . $flags );
 		}
 		
