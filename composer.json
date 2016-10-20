@@ -1,6 +1,6 @@
 {
     "name": "pixline/wp-cli-proxy",
-    "type": "command",
+    "type": "wp-cli-package",
     "description": "wp-cli debug proxy setup (mitmproxy.org)",
     "keywords": ["wp-cli","mitmproxy","proxy","development"],
     "homepage": "https://github.com/pixline/wp-cli-proxy",
